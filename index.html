@@ -43,7 +43,7 @@
 
         .input-field {
             transition: all 0.2s;
-            box-sizing: border-box; /* Ensures padding doesn't push width out */
+            box-sizing: border-box;
             appearance: none;
             -webkit-appearance: none;
         }
@@ -75,7 +75,7 @@
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; opacity: 1; transform: translateY(0); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -118,7 +118,6 @@
                 <div class="space-y-5">
                     <input type="hidden" id="editId">
                     
-                    <!-- Fixed UI Container for Date and Category -->
                     <div class="space-y-5">
                         <div class="w-full">
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">နေ့စွဲ</label>
@@ -318,6 +317,8 @@
         const db = getFirestore(app);
 
         let salesData = [];
+        let monthlySettings = {}; 
+
         const APP_ID = 'velvet-house-v3';
 
         signInAnonymously(auth).then(() => {
@@ -336,6 +337,14 @@
                 btn.innerText = "Start App";
                 updateSyncIcon('ready');
             });
+
+            const settingsRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'monthly');
+            onSnapshot(settingsRef, (snap) => {
+                if (snap.exists()) {
+                    monthlySettings = snap.data().settings || {};
+                    renderAll();
+                }
+            });
         });
 
         async function syncToCloud(newData) {
@@ -343,6 +352,11 @@
             const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'records', 'global');
             await setDoc(docRef, { items: newData, lastUpdated: new Date() });
             updateSyncIcon('ready');
+        }
+
+        async function syncSettingsToCloud(newSettings) {
+            const settingsRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'settings', 'monthly');
+            await setDoc(settingsRef, { settings: newSettings, lastUpdated: new Date() });
         }
 
         function updateSyncIcon(state) {
@@ -401,7 +415,6 @@
                 const size = document.getElementById('pSize').value;
                 finalName = `${name} (${type})`;
                 finalSizeLabel = size;
-                
                 pkDeduction = (size === 'retail') ? 1000 : 3000;
 
                 if (size === 'retail') {
@@ -425,8 +438,9 @@
             const dailyProfit = (finalSaleAmt - finalCostAmt - pkDeduction) + risk;
             const rawProfit = (finalSaleAmt - finalCostAmt) + risk;
 
+            // Updated ID generation to ensure uniqueness even with same names
             const itemObj = {
-                id: editId ? parseInt(editId) : Date.now(),
+                id: editId ? editId : (Date.now() + Math.random().toString(36).substr(2, 5)),
                 date, name: finalName, size: finalSizeLabel,
                 calcCost: finalCostAmt, 
                 profit: dailyProfit, 
@@ -446,6 +460,20 @@
             await syncToCloud(updated);
             clearFields();
             showTab('daily');
+        };
+
+        window.updateMonthlyCalcs = (month) => {
+            const pkVal = parseFloat(document.getElementById(`pk-${month}`).value) || 0;
+            const deliVal = parseFloat(document.getElementById(`deli-${month}`).value) || 0;
+            
+            monthlySettings[month] = { pk: pkVal, deli: deliVal };
+            syncSettingsToCloud(monthlySettings);
+            
+            const gross = parseFloat(document.getElementById(`gross-${month}`).dataset.value) || 0;
+            const net = gross - pkVal - deliVal;
+            
+            document.getElementById(`net-text-${month}`).innerText = format(net);
+            document.getElementById(`net-footer-${month}`).innerText = format(net) + " Ks";
         };
 
         window.renderAll = () => {
@@ -468,7 +496,7 @@
                             <span class="font-black text-slate-900">${format(item.profit)}</span>
                         </td>
                         <td class="px-6 py-4 text-center">
-                            <button onclick="editItem(${item.id})" class="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg font-bold">Edit</button>
+                            <button onclick="editItem('${item.id}')" class="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg font-bold">Edit</button>
                         </td>
                     </tr>`;
             });
@@ -481,17 +509,36 @@
             const groups = {};
             salesData.forEach(item => {
                 const month = item.date.substring(0, 7);
-                if(!groups[month]) groups[month] = { rawProfitSum: 0, cost: 0, count: 0 };
+                if(!groups[month]) {
+                    groups[month] = { 
+                        rawProfitSum: 0, cost: 0, count: 0,
+                        retailCount: 0, d5mlCount: 0, d10mlCount: 0, d30mlCount: 0,
+                        cosmeticCount: 0, otherCount: 0
+                    };
+                }
                 groups[month].rawProfitSum += (item.rawProfit || item.profit);
                 groups[month].cost += item.calcCost;
                 groups[month].count++;
+
+                const cat = item.rawInputs?.cat;
+                const size = item.rawInputs?.size || item.size;
+                if (cat === 'perfume') {
+                    if (size === 'retail') groups[month].retailCount++;
+                    else if (size === '5ml') groups[month].d5mlCount++;
+                    else if (size === '10ml') groups[month].d10mlCount++;
+                    else if (size === '30ml') groups[month].d30mlCount++;
+                } else if (cat === 'cosmetic') {
+                    groups[month].cosmeticCount++;
+                } else if (cat === 'other') {
+                    groups[month].otherCount++;
+                }
             });
 
             Object.keys(groups).sort().reverse().forEach(month => {
                 const data = groups[month];
-                const deliFee = 50000;
-                const packingFeeTotal = 100000; 
-                const netProfit = data.rawProfitSum - deliFee - packingFeeTotal;
+                const currentDeli = monthlySettings[month]?.deli ?? 50000;
+                const currentPk = monthlySettings[month]?.pk ?? 100000;
+                const netProfit = data.rawProfitSum - currentDeli - currentPk;
 
                 monthlyContainer.innerHTML += `
                     <div class="neo-card rounded-[2.5rem] p-8 border-t-[8px] border-slate-900 fade-in">
@@ -502,19 +549,51 @@
                             </div>
                             <span class="bg-slate-900 text-white px-3 py-1 rounded-full text-[9px] font-black">${data.count} SALES</span>
                         </div>
+
+                        <div class="grid grid-cols-3 gap-2 mb-6">
+                            <div class="bg-slate-50 p-2 rounded-xl text-center">
+                                <p class="text-[7px] font-bold text-slate-400 uppercase">Retail</p>
+                                <p class="text-[11px] font-black text-slate-800">${data.retailCount}</p>
+                            </div>
+                            <div class="bg-indigo-50 p-2 rounded-xl text-center">
+                                <p class="text-[7px] font-bold text-indigo-400 uppercase">5ml</p>
+                                <p class="text-[11px] font-black text-indigo-700">${data.d5mlCount}</p>
+                            </div>
+                            <div class="bg-indigo-50 p-2 rounded-xl text-center">
+                                <p class="text-[7px] font-bold text-indigo-400 uppercase">10ml</p>
+                                <p class="text-[11px] font-black text-indigo-700">${data.d10mlCount}</p>
+                            </div>
+                            <div class="bg-indigo-50 p-2 rounded-xl text-center">
+                                <p class="text-[7px] font-bold text-indigo-400 uppercase">30ml</p>
+                                <p class="text-[11px] font-black text-indigo-700">${data.d30mlCount}</p>
+                            </div>
+                            <div class="bg-pink-50 p-2 rounded-xl text-center">
+                                <p class="text-[7px] font-bold text-pink-400 uppercase">Cosmetic</p>
+                                <p class="text-[11px] font-black text-pink-700">${data.cosmeticCount}</p>
+                            </div>
+                            <div class="bg-amber-50 p-2 rounded-xl text-center">
+                                <p class="text-[7px] font-bold text-amber-500 uppercase">Other</p>
+                                <p class="text-[11px] font-black text-amber-700">${data.otherCount}</p>
+                            </div>
+                        </div>
                         
-                        <div class="space-y-3 mb-6">
+                        <div class="space-y-4 mb-6">
                             <div class="flex justify-between text-[11px] font-bold">
                                 <span class="text-slate-500 uppercase tracking-tighter">Gross Profit (Pre-deduction)</span>
-                                <span class="text-slate-800">${format(data.rawProfitSum)} Ks</span>
+                                <span id="gross-${month}" data-value="${data.rawProfitSum}" class="text-slate-800">${format(data.rawProfitSum)} Ks</span>
                             </div>
-                            <div class="flex justify-between text-[11px] font-bold text-rose-500">
-                                <span class="uppercase">Monthly Packing Fee</span>
-                                <span>- ${format(packingFeeTotal)} Ks</span>
-                            </div>
-                            <div class="flex justify-between text-[11px] font-bold text-rose-500">
-                                <span class="uppercase">Monthly Deli Fee</span>
-                                <span>- ${format(deliFee)} Ks</span>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-[9px] font-bold text-rose-400 uppercase">Packing Fee</label>
+                                    <input type="number" id="pk-${month}" value="${currentPk}" oninput="updateMonthlyCalcs('${month}')" 
+                                           class="w-full bg-rose-50 border-none rounded-xl px-4 py-2.5 text-[11px] font-bold text-rose-600 outline-none mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-bold text-rose-400 uppercase">Delivery Fee</label>
+                                    <input type="number" id="deli-${month}" value="${currentDeli}" oninput="updateMonthlyCalcs('${month}')" 
+                                           class="w-full bg-rose-50 border-none rounded-xl px-4 py-2.5 text-[11px] font-bold text-rose-600 outline-none mt-1">
+                                </div>
                             </div>
                         </div>
 
@@ -525,13 +604,13 @@
                             </div>
                             <div class="bg-indigo-50 p-4 rounded-2xl">
                                 <p class="text-[8px] font-bold text-indigo-400 uppercase mb-1">Monthly Pure Profit</p>
-                                <p class="text-sm font-black text-indigo-600">${format(netProfit)}</p>
+                                <p class="text-sm font-black text-indigo-600" id="net-text-${month}">${format(netProfit)}</p>
                             </div>
                         </div>
                         
                         <div class="pt-5 border-t border-slate-100 flex justify-between items-center">
                             <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Net Revenue</span>
-                            <span class="text-xl font-black text-indigo-600">${format(netProfit)} Ks</span>
+                            <span class="text-xl font-black text-indigo-600" id="net-footer-${month}">${format(netProfit)} Ks</span>
                         </div>
                     </div>`;
             });
