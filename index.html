@@ -170,9 +170,15 @@
                         </div>
                     </div>
 
-                    <div class="w-full">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Risk Cover Money (အပိုတင်ငွေ)</label>
-                        <input type="number" id="riskMoney" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-black text-indigo-600 block" value="0">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="w-full">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Packing Fee (ပါဆယ်ခ)</label>
+                            <input type="number" id="packingFee" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-black text-rose-500 block" value="0">
+                        </div>
+                        <div class="w-full">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Risk Money (အပိုတင်ငွေ)</label>
+                            <input type="number" id="riskMoney" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-black text-indigo-600 block" value="0">
+                        </div>
                     </div>
 
                     <div class="flex gap-3 pt-4">
@@ -258,9 +264,15 @@
                         </div>
                     </div>
                     
-                    <div class="w-full">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase">အပိုတင်ငွေ (Risk Money)</label>
-                        <input type="number" id="calcRisk" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-black text-indigo-600 block" value="0">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="w-full">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Packing Fee (ပါဆယ်ခ)</label>
+                            <input type="number" id="calcPacking" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-black text-rose-500 block" value="0">
+                        </div>
+                        <div class="w-full">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">Risk Money (အပိုတင်ငွေ)</label>
+                            <input type="number" id="calcRisk" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-black text-indigo-600 block" value="0">
+                        </div>
                     </div>
 
                     <div id="calc-display" class="hidden calc-result rounded-3xl p-7 mt-6 text-center text-white">
@@ -404,18 +416,18 @@
             const costInput = parseFloat(document.getElementById('cPrice').value) || 0;
             const saleInput = parseFloat(document.getElementById('sPrice').value) || 0;
             const risk = parseFloat(document.getElementById('riskMoney').value) || 0;
+            const userPackingFee = parseFloat(document.getElementById('packingFee').value) || 0;
             const editId = document.getElementById('editId').value;
 
             if(!name || saleInput <= 0 || !date) return;
 
-            let finalSaleAmt, finalCostAmt, finalName = name, finalSizeLabel = '', pkDeduction = 0;
+            let finalSaleAmt, finalCostAmt, finalName = name, finalSizeLabel = '';
 
             if (cat === 'perfume') {
                 const type = document.getElementById('pType').value;
                 const size = document.getElementById('pSize').value;
                 finalName = `${name} (${type})`;
                 finalSizeLabel = size;
-                pkDeduction = (size === 'retail') ? 1000 : 3000;
 
                 if (size === 'retail') {
                     finalSaleAmt = saleInput;
@@ -432,13 +444,12 @@
                 finalSaleAmt = saleInput;
                 finalCostAmt = costInput;
                 finalSizeLabel = cat.toUpperCase();
-                pkDeduction = 0; 
             }
 
-            const dailyProfit = (finalSaleAmt - finalCostAmt - pkDeduction) + risk;
+            // Profit = (Sale - Cost - User Specified Packing Fee) + Risk Money
+            const dailyProfit = (finalSaleAmt - finalCostAmt - userPackingFee) + risk;
             const rawProfit = (finalSaleAmt - finalCostAmt) + risk;
 
-            // Updated ID generation to ensure uniqueness even with same names
             const itemObj = {
                 id: editId ? editId : (Date.now() + Math.random().toString(36).substr(2, 5)),
                 date, name: finalName, size: finalSizeLabel,
@@ -446,6 +457,7 @@
                 profit: dailyProfit, 
                 rawProfit: rawProfit, 
                 riskMoney: risk,
+                packingFee: userPackingFee,
                 rawInputs: { cost: costInput, sale: saleInput, cat, size: finalSizeLabel }
             };
 
@@ -585,12 +597,12 @@
                             
                             <div class="space-y-3">
                                 <div>
-                                    <label class="text-[9px] font-bold text-rose-400 uppercase">Packing Fee</label>
+                                    <label class="text-[9px] font-bold text-rose-400 uppercase">Packing Fee (Monthly General)</label>
                                     <input type="number" id="pk-${month}" value="${currentPk}" oninput="updateMonthlyCalcs('${month}')" 
                                            class="w-full bg-rose-50 border-none rounded-xl px-4 py-2.5 text-[11px] font-bold text-rose-600 outline-none mt-1">
                                 </div>
                                 <div>
-                                    <label class="text-[9px] font-bold text-rose-400 uppercase">Delivery Fee</label>
+                                    <label class="text-[9px] font-bold text-rose-400 uppercase">Delivery Fee (Monthly General)</label>
                                     <input type="number" id="deli-${month}" value="${currentDeli}" oninput="updateMonthlyCalcs('${month}')" 
                                            class="w-full bg-rose-50 border-none rounded-xl px-4 py-2.5 text-[11px] font-bold text-rose-600 outline-none mt-1">
                                 </div>
@@ -627,6 +639,7 @@
             document.getElementById('cPrice').value = item.rawInputs?.cost;
             document.getElementById('sPrice').value = item.rawInputs?.sale;
             document.getElementById('riskMoney').value = item.riskMoney;
+            document.getElementById('packingFee').value = item.packingFee || 0;
             document.getElementById('input-title').innerText = "✏️ ပြင်ဆင်နေသည်";
             document.getElementById('save-btn').innerText = "Update Record";
             document.getElementById('cancel-edit-btn').classList.remove('hidden');
@@ -652,17 +665,17 @@
             const cost = parseFloat(document.getElementById('calcCost').value) || 0;
             const sale = parseFloat(document.getElementById('calcSale').value) || 0;
             const risk = parseFloat(document.getElementById('calcRisk').value) || 0;
+            const packing = parseFloat(document.getElementById('calcPacking').value) || 0;
             let res = 0;
             if (cat === 'perfume') {
                 const sz = document.getElementById('calcSize').value;
-                let pk = (sz === 'retail') ? 1000 : 3000; 
                 let s, c;
                 if (sz === '5ml') { s=(sale/100)*5; c=(cost/100)*5; }
                 else if (sz === '10ml') { s=(sale/100)*10; c=(cost/100)*10; }
                 else if (sz === '30ml') { s=(sale/100)*30; c=(cost/100)*30; }
                 else { s=sale; c=cost; }
-                res = (s-c-pk)+risk;
-            } else { res = (sale-cost)+risk; }
+                res = (s-c-packing)+risk;
+            } else { res = (sale-cost-packing)+risk; }
             document.getElementById('calc-display').classList.remove('hidden');
             document.getElementById('calc-result-text').innerText = format(res) + " Ks";
         };
@@ -671,6 +684,7 @@
             document.getElementById('calcCost').value='';
             document.getElementById('calcSale').value='';
             document.getElementById('calcRisk').value='0';
+            document.getElementById('calcPacking').value='0';
             document.getElementById('calc-display').classList.add('hidden');
         };
 
@@ -680,6 +694,7 @@
             document.getElementById('cPrice').value = '';
             document.getElementById('sPrice').value = '';
             document.getElementById('riskMoney').value = '0';
+            document.getElementById('packingFee').value = '0';
         };
 
         const today = new Date().toISOString().split('T')[0];
