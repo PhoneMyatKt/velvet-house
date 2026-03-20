@@ -138,23 +138,37 @@
                         <input type="text" id="pName" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-semibold text-slate-800 block" placeholder="အမည်ရိုက်ပါ">
                     </div>
 
-                    <div id="perfume-extras" class="grid grid-cols-2 gap-4">
-                        <div class="w-full">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Type</label>
-                            <select id="pType" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-semibold text-slate-700 block">
-                                <option value="EDT">EDT</option>
-                                <option value="EDP">EDP</option>
-                                <option value="Extrait">Extrait</option>
-                                <option value="Parfum">Parfum</option>
-                            </select>
+                    <div id="perfume-extras" class="space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Type</label>
+                                <select id="pType" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-semibold text-slate-700 block">
+                                    <option value="EDT">EDT</option>
+                                    <option value="EDP">EDP</option>
+                                    <option value="Extrait">Extrait</option>
+                                    <option value="Parfum">Parfum</option>
+                                </select>
+                            </div>
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">ရောင်းမည့်ဆိုဒ် (Sale Size)</label>
+                                <select id="pSize" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-semibold text-slate-700 block">
+                                    <option value="retail">Retail Box</option>
+                                    <option value="5ml">5ml Decant</option>
+                                    <option value="10ml">10ml Decant</option>
+                                    <option value="30ml">30ml Decant</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="w-full">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">ဆိုဒ် (Size)</label>
-                            <select id="pSize" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-semibold text-slate-700 block">
-                                <option value="retail">Retail Box</option>
-                                <option value="5ml">5ml Decant</option>
-                                <option value="10ml">10ml Decant</option>
-                                <option value="30ml">30ml Decant</option>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">မူလဗူးဆိုဒ် (Base Bottle Size)</label>
+                            <select id="pBaseSize" onchange="updateBaseLabels()" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-bold text-slate-800 block">
+                                <option value="100">100ml</option>
+                                <option value="75">75ml</option>
+                                <option value="80">80ml</option>
+                                <option value="90">90ml</option>
+                                <option value="125">125ml</option>
+                                <option value="150">150ml</option>
+                                <option value="200">200ml</option>
                             </select>
                         </div>
                     </div>
@@ -244,22 +258,36 @@
                             <option value="cosmetic">Cosmetic</option>
                         </select>
                     </div>
-                    <div id="calc-perfume-extras">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase">ဆိုဒ် (Size)</label>
-                        <select id="calcSize" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-semibold block">
-                            <option value="retail">Retail Box</option>
-                            <option value="5ml">5ml Decant</option>
-                            <option value="10ml">10ml Decant</option>
-                            <option value="30ml">30ml Decant</option>
-                        </select>
+                    <div id="calc-perfume-extras" class="space-y-5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">ရောင်းမည့်ဆိုဒ် (Sale Size)</label>
+                            <select id="calcSize" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-semibold block">
+                                <option value="retail">Retail Box</option>
+                                <option value="5ml">5ml Decant</option>
+                                <option value="10ml">10ml Decant</option>
+                                <option value="30ml">30ml Decant</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase">မူလဗူးဆိုဒ် (Base Bottle Size)</label>
+                            <select id="calcBaseSize" onchange="updateCalcBaseLabels()" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-bold block">
+                                <option value="100">100ml</option>
+                                <option value="75">75ml</option>
+                                <option value="80">80ml</option>
+                                <option value="90">90ml</option>
+                                <option value="125">125ml</option>
+                                <option value="150">150ml</option>
+                                <option value="200">200ml</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="w-full">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase">ရင်းစျေး (100ml)</label>
+                            <label id="calcCostLabel" class="block text-[10px] font-bold text-slate-400 uppercase">ရင်းစျေး (100ml)</label>
                             <input type="number" id="calcCost" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-bold block" placeholder="0">
                         </div>
                         <div class="w-full">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase">ရောင်းစျေး (100ml)</label>
+                            <label id="calcSaleLabel" class="block text-[10px] font-bold text-slate-400 uppercase">ရောင်းစျေး (100ml)</label>
                             <input type="number" id="calcSale" class="input-field w-full mt-1.5 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 outline-none font-bold text-indigo-600 block" placeholder="0">
                         </div>
                     </div>
@@ -393,12 +421,42 @@
             }, 500);
         };
 
+        window.updateBaseLabels = () => {
+            const cat = document.getElementById('pCategory').value;
+            const baseSize = document.getElementById('pBaseSize').value;
+            if (cat === 'perfume') {
+                document.getElementById('costLabel').innerText = `ရင်းစျေး (${baseSize}ml)`;
+                document.getElementById('saleLabel').innerText = `ရောင်းစျေး (${baseSize}ml)`;
+            } else {
+                document.getElementById('costLabel').innerText = "ရင်းစျေး (Total)";
+                document.getElementById('saleLabel').innerText = "ရောင်းစျေး (Total)";
+            }
+        };
+
+        window.updateCalcBaseLabels = () => {
+            const cat = document.getElementById('calcCategory').value;
+            const baseSize = document.getElementById('calcBaseSize').value;
+            if (cat === 'perfume') {
+                document.getElementById('calcCostLabel').innerText = `ရင်းစျေး (${baseSize}ml)`;
+                document.getElementById('calcSaleLabel').innerText = `ရောင်းစျေး (${baseSize}ml)`;
+            } else {
+                document.getElementById('calcCostLabel').innerText = "ရင်းစျေး (Total)";
+                document.getElementById('calcSaleLabel').innerText = "ရောင်းစျေး (Total)";
+            }
+        };
+
         window.toggleFields = () => {
             const cat = document.getElementById('pCategory').value;
             const extraDiv = document.getElementById('perfume-extras');
-            extraDiv.style.display = (cat === 'perfume') ? 'grid' : 'none';
-            document.getElementById('costLabel').innerText = (cat === 'perfume') ? "ရင်းစျေး (100ml)" : "ရင်းစျေး (Total)";
-            document.getElementById('saleLabel').innerText = (cat === 'perfume') ? "ရောင်းစျေး (100ml)" : "ရောင်းစျေး (Total)";
+            extraDiv.style.display = (cat === 'perfume') ? 'block' : 'none';
+            updateBaseLabels();
+        };
+
+        window.toggleCalcFields = () => {
+            const cat = document.getElementById('calcCategory').value;
+            const extraDiv = document.getElementById('calc-perfume-extras');
+            extraDiv.style.display = (cat === 'perfume') ? 'block' : 'none';
+            updateCalcBaseLabels();
         };
 
         window.showTab = (tabId) => {
@@ -426,6 +484,7 @@
             if (cat === 'perfume') {
                 const type = document.getElementById('pType').value;
                 const size = document.getElementById('pSize').value;
+                const baseSize = parseFloat(document.getElementById('pBaseSize').value) || 100;
                 finalName = `${name} (${type})`;
                 finalSizeLabel = size;
 
@@ -437,8 +496,9 @@
                     if (size === '5ml') ml = 5;
                     else if (size === '10ml') ml = 10;
                     else if (size === '30ml') ml = 30;
-                    finalSaleAmt = (saleInput / 100) * ml;
-                    finalCostAmt = (costInput / 100) * ml;
+                    // Formula adjusted for dynamic Base Size
+                    finalSaleAmt = (saleInput / baseSize) * ml;
+                    finalCostAmt = (costInput / baseSize) * ml;
                 }
             } else {
                 finalSaleAmt = saleInput;
@@ -446,7 +506,6 @@
                 finalSizeLabel = cat.toUpperCase();
             }
 
-            // Profit = (Sale - Cost - User Specified Packing Fee) + Risk Money
             const dailyProfit = (finalSaleAmt - finalCostAmt - userPackingFee) + risk;
             const rawProfit = (finalSaleAmt - finalCostAmt) + risk;
 
@@ -458,7 +517,13 @@
                 rawProfit: rawProfit, 
                 riskMoney: risk,
                 packingFee: userPackingFee,
-                rawInputs: { cost: costInput, sale: saleInput, cat, size: finalSizeLabel }
+                rawInputs: { 
+                    cost: costInput, 
+                    sale: saleInput, 
+                    cat, 
+                    size: finalSizeLabel,
+                    baseSize: (cat === 'perfume' ? document.getElementById('pBaseSize').value : null)
+                }
             };
 
             let updated;
@@ -633,8 +698,13 @@
             if(!item) return;
             document.getElementById('editId').value = item.id;
             document.getElementById('saleDate').value = item.date;
-            document.getElementById('pCategory').value = item.rawInputs?.cat || 'perfume';
+            const cat = item.rawInputs?.cat || 'perfume';
+            document.getElementById('pCategory').value = cat;
             toggleFields();
+            if (cat === 'perfume') {
+                document.getElementById('pBaseSize').value = item.rawInputs?.baseSize || '100';
+                updateBaseLabels();
+            }
             document.getElementById('pName').value = item.name.split(' (')[0];
             document.getElementById('cPrice').value = item.rawInputs?.cost;
             document.getElementById('sPrice').value = item.rawInputs?.sale;
@@ -669,10 +739,11 @@
             let res = 0;
             if (cat === 'perfume') {
                 const sz = document.getElementById('calcSize').value;
+                const baseSize = parseFloat(document.getElementById('calcBaseSize').value) || 100;
                 let s, c;
-                if (sz === '5ml') { s=(sale/100)*5; c=(cost/100)*5; }
-                else if (sz === '10ml') { s=(sale/100)*10; c=(cost/100)*10; }
-                else if (sz === '30ml') { s=(sale/100)*30; c=(cost/100)*30; }
+                if (sz === '5ml') { s=(sale/baseSize)*5; c=(cost/baseSize)*5; }
+                else if (sz === '10ml') { s=(sale/baseSize)*10; c=(cost/baseSize)*10; }
+                else if (sz === '30ml') { s=(sale/baseSize)*30; c=(cost/baseSize)*30; }
                 else { s=sale; c=cost; }
                 res = (s-c-packing)+risk;
             } else { res = (sale-cost-packing)+risk; }
@@ -695,6 +766,8 @@
             document.getElementById('sPrice').value = '';
             document.getElementById('riskMoney').value = '0';
             document.getElementById('packingFee').value = '0';
+            document.getElementById('pBaseSize').value = '100';
+            updateBaseLabels();
         };
 
         const today = new Date().toISOString().split('T')[0];
